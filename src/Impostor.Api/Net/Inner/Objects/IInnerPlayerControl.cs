@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Impostor.Api.Innersloth;
 using Impostor.Api.Innersloth.Customization;
 using Impostor.Api.Net.Inner.Objects.Components;
 
@@ -112,5 +113,18 @@ namespace Impostor.Api.Net.Inner.Objects
         /// /// <param name="impostor">The Impostor who kill.</param>
         /// <returns>Task that must be awaited.</returns>
         ValueTask SetMurderedByAsync(IClientPlayer impostor);
+
+        /// <summary>
+        ///     Sets the current position of the player to a specific vent if he is an impostor.
+        /// </summary>
+        /// <param name="ventLocation">The vent to be set</param>
+        /// <returns>Task that must be awaited.</returns>
+        ValueTask SetVentAsync(VentLocation ventLocation);
+
+        /// <summary>
+        ///     Exits the vent if the player is in a vent
+        /// </summary>
+        /// <returns>Task that must be awaited.</returns>
+        ValueTask ExitVentAsync();
     }
 }
