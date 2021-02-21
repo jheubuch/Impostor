@@ -135,23 +135,35 @@ namespace Impostor.Server.Net.Inner.Objects
             await _eventManager.CallAsync(new PlayerMurderEvent(_game, impostor, impostor.Character, this));
         }
 
-        public async ValueTask SetVentAsync(VentLocation ventLocation)
+        public async ValueTask SetMurderedByAsyncNoEvent(IClientPlayer impostor)
         {
-            if (PlayerInfo.IsImpostor)
+            if (impostor.Character == null)
             {
-                using var writer = _game.StartRpc(NetId, RpcCalls.EnterVent);
-                writer.WritePacked((int) ventLocation);
-                await _game.FinishRpcAsync(writer);
+                throw new ImpostorException("Character is null.");
             }
-        }
 
-        public async ValueTask ExitVentAsync()
-        {
-            if (PlayerInfo.IsImpostor)
+            if (!impostor.Character.PlayerInfo.IsImpostor)
             {
-                using var writer = _game.StartRpc(NetId, RpcCalls.ExitVent);
-                await _game.FinishRpcAsync(writer);
+                throw new ImpostorProtocolException("Plugin tried to murder a player while the impostor specified was not an impostor.");
             }
+
+            if (impostor.Character.PlayerInfo.IsDead)
+            {
+                throw new ImpostorProtocolException("Plugin tried to murder a player while the impostor specified was dead.");
+            }
+
+            if (PlayerInfo.IsDead)
+            {
+                return;
+            }
+
+            // Update player.
+            Die(DeathReason.Kill);
+
+            // Send RPC.
+            using var writer = _game.StartRpc(impostor.Character.NetId, RpcCalls.MurderPlayer);
+            writer.WritePacked(NetId);
+            await _game.FinishRpcAsync(writer);
         }
     }
 }

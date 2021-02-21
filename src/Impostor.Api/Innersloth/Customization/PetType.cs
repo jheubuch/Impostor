@@ -1,4 +1,4 @@
-namespace Impostor.Api.Innersloth.Customization
+﻿namespace Impostor.Api.Innersloth.Customization
 {
     public enum PetType
     {

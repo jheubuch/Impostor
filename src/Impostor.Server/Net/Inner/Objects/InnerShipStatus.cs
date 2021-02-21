@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Impostor.Api;
+using Impostor.Api.Events.Managers;
 using Impostor.Api.Innersloth;
 using Impostor.Api.Net;
 using Impostor.Api.Net.Inner.Objects;
 using Impostor.Api.Net.Messages;
+using Impostor.Server.Events.Player;
 using Impostor.Server.Net.Inner.Objects.Systems;
 using Impostor.Server.Net.Inner.Objects.Systems.ShipStatus;
 using Impostor.Server.Net.State;
@@ -17,12 +19,14 @@ namespace Impostor.Server.Net.Inner.Objects
     {
         private readonly ILogger<InnerShipStatus> _logger;
         private readonly Game _game;
+        private readonly IEventManager _eventManager;
         private readonly Dictionary<SystemTypes, ISystemType> _systems;
 
-        public InnerShipStatus(ILogger<InnerShipStatus> logger, Game game)
+        public InnerShipStatus(ILogger<InnerShipStatus> logger, Game game, IEventManager eventManager)
         {
             _logger = logger;
             _game = game;
+            _eventManager = eventManager;
 
             _systems = new Dictionary<SystemTypes, ISystemType>
             {
@@ -46,8 +50,7 @@ namespace Impostor.Server.Net.Inner.Objects
             Components.Add(this);
         }
 
-        public override ValueTask HandleRpc(ClientPlayer sender, ClientPlayer? target, RpcCalls call,
-            IMessageReader reader)
+        public async override ValueTask HandleRpc(ClientPlayer sender, ClientPlayer? target, RpcCalls call, IMessageReader reader)
         {
             switch (call)
             {
@@ -64,7 +67,6 @@ namespace Impostor.Server.Net.Inner.Objects
                     }
 
                     var systemType = (SystemTypes)reader.ReadByte();
-
                     break;
                 }
 
@@ -83,6 +85,10 @@ namespace Impostor.Server.Net.Inner.Objects
 
                     var player = reader.ReadNetObject<InnerPlayerControl>(_game);
                     var amount = reader.ReadByte();
+                    if (amount == 7 || amount == 3 || amount == 14 || systemType == SystemTypes.Sabotage)
+                    {
+                        await _eventManager.CallAsync(new PlayerSabotageEvent(_game, _game.GetClientPlayer(player.OwnerId), player, amount));
+                    }
 
                     // TODO: Modify data (?)
                     break;
@@ -95,7 +101,7 @@ namespace Impostor.Server.Net.Inner.Objects
                 }
             }
 
-            return default;
+            return;
         }
 
         public override ValueTask<bool> SerializeAsync(IMessageWriter writer, bool initialState)
@@ -122,14 +128,13 @@ namespace Impostor.Server.Net.Inner.Objects
                 {
                     if (_systems.TryGetValue(systemType, out var system))
                     {
-                        system.Deserialize(reader, true);
+                        system.Deserialize(reader, true, _eventManager);
                     }
                 }
             }
             else
             {
                 var count = reader.ReadPackedUInt32();
-
                 foreach (var systemType in SystemTypeHelpers.AllTypes)
                 {
                     // TODO: Not sure what is going on here, check.
@@ -137,7 +142,7 @@ namespace Impostor.Server.Net.Inner.Objects
                     {
                         if (_systems.TryGetValue(systemType, out var system))
                         {
-                            system.Deserialize(reader, false);
+                            system.Deserialize(reader, false, _eventManager);
                         }
                     }
                 }
