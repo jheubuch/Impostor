@@ -257,7 +257,7 @@ namespace Impostor.Server.Net.Inner.Objects
                 // Validates the color at the host.
                 case RpcCalls.CheckColor:
                 {
-                    if (!sender.IsOwner(this))
+                    /*if (!sender.IsOwner(this))
                     {
                         throw new ImpostorCheatException($"Client sent {nameof(RpcCalls.CheckColor)} to an unowned {nameof(InnerPlayerControl)}");
                     }
@@ -274,14 +274,14 @@ namespace Impostor.Server.Net.Inner.Objects
                         throw new ImpostorCheatException($"Client sent {nameof(RpcCalls.CheckColor)} with invalid color");
                     }
 
-                    PlayerInfo.RequestedColorId = color;
+                    PlayerInfo.RequestedColorId = color; */
                     break;
                 }
 
                 // Update the color of a player.
                 case RpcCalls.SetColor:
                 {
-                    if (!sender.IsHost)
+                   /* if (!sender.IsHost)
                     {
                         throw new ImpostorCheatException($"Client sent {nameof(RpcCalls.SetColor)} but was not a host");
                     }
@@ -321,7 +321,7 @@ namespace Impostor.Server.Net.Inner.Objects
                     }
 
                     PlayerInfo.ColorId = color;
-                    PlayerInfo.RequestedColorId = null;
+                    PlayerInfo.RequestedColorId = null; */
                     break;
                 }
 

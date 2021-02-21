@@ -134,5 +134,24 @@ namespace Impostor.Server.Net.Inner.Objects
             // Notify plugins.
             await _eventManager.CallAsync(new PlayerMurderEvent(_game, impostor, impostor.Character, this));
         }
+
+        public async ValueTask SetVentAsync(VentLocation ventLocation)
+        {
+            if (PlayerInfo.IsImpostor)
+            {
+                using var writer = _game.StartRpc(NetId, RpcCalls.EnterVent);
+                writer.WritePacked((int) ventLocation);
+                await _game.FinishRpcAsync(writer);
+            }
+        }
+
+        public async ValueTask ExitVentAsync()
+        {
+            if (PlayerInfo.IsImpostor)
+            {
+                using var writer = _game.StartRpc(NetId, RpcCalls.ExitVent);
+                await _game.FinishRpcAsync(writer);
+            }
+        }
     }
 }
